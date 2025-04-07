@@ -37,12 +37,11 @@ st.markdown("""
         margin-top: 20px;
         margin-bottom: 10px;
     }
-    .result-card {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
+    .card-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #0078ff;
     }
     .result-value {
         font-size: 24px;
@@ -73,13 +72,13 @@ st.markdown("""
 # Título principal
 st.markdown('<div class="main-header">🌐 Calculadora de Posición para Forex</div>', unsafe_allow_html=True)
 
-# Crear columnas para la sección principal
-col1, col2 = st.columns([1, 1])
+# ======= SECCIÓN DE PARÁMETROS DE ENTRADA =======
+st.markdown('<div class="sub-header">📊 Parámetros de Entrada</div>', unsafe_allow_html=True)
 
-with col1:
-    st.markdown('<div class="sub-header">📊 Parámetros de Entrada</div>', unsafe_allow_html=True)
+col_param1, col_param2 = st.columns(2)
 
-    # Parámetros de entrada
+with col_param1:
+    # Parámetros básicos
     balance = st.number_input('Balance de la cuenta ($)', min_value=10.0, max_value=1000000.0, value=10000.0,
                               step=100.0)
     riesgo = st.slider('Riesgo (%)', min_value=0.1, max_value=10.0, value=1.0, step=0.1)
@@ -87,6 +86,7 @@ with col1:
     stop_loss = st.number_input('Stop Loss (pips)', min_value=0.1, max_value=1000.0, value=50.0, step=0.1,
                                 format="%.1f")
 
+with col_param2:
     # Selector de par de divisas
     par_divisa = st.selectbox(
         'Par de divisas',
@@ -178,17 +178,18 @@ else:  # Para mini y estándar, redondeamos a 2 decimales
 riesgo_real = lotes_ajustados * valor_pip_loss + lotes_ajustados * comision
 riesgo_real_porcentaje = (riesgo_real / balance) * 100
 
-# Mostrar resultados en la columna 2
-with col2:
-    st.markdown('<div class="sub-header">📈 Resultados del Cálculo</div>', unsafe_allow_html=True)
+# ======= SECCIÓN DE RESULTADOS DEL CÁLCULO =======
+st.markdown('<div class="sub-header">📈 Resultados del Cálculo</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+# Card para el tamaño de posición
+col_result1, col_result2, col_result3 = st.columns([2, 1, 1])
+
+with col_result1:
+    st.markdown('<div class="card-title">Tamaño de Posición</div>', unsafe_allow_html=True)
     if lot_multiplier == 0.01:  # Para micro lotes, mostrar 3 decimales
-        st.markdown(f'<div class="result-value">Tamaño de Posición: {lotes_ajustados:.3f} {lot_name}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div class="result-value">{lotes_ajustados:.3f} {lot_name}</div>', unsafe_allow_html=True)
     else:
-        st.markdown(f'<div class="result-value">Tamaño de Posición: {lotes_ajustados:.2f} {lot_name}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(f'<div class="result-value">{lotes_ajustados:.2f} {lot_name}</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="info-text">Equivalente a {lotes_ajustados * 100000 * lot_multiplier:,.0f} unidades</div>',
                 unsafe_allow_html=True)
 
@@ -204,73 +205,75 @@ with col2:
         • Comisión: ${lotes_ajustados * comision:.2f}<br>
         • Riesgo total: ${riesgo_real:.2f} ({riesgo_real_porcentaje:.2f}% del balance)
     </div>''', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    col_a, col_b = st.columns(2)
+with col_result2:
+    st.markdown('<div class="card-title">Monto en Riesgo</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="result-value loss">${riesgo_real:.2f}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="info-text">Equivalente al {riesgo_real_porcentaje:.2f}% del balance</div>',
+                unsafe_allow_html=True)
 
-    with col_a:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown(f'<div>Monto en riesgo:</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="result-value loss">${riesgo_real:.2f}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-text">Equivalente al {riesgo_real_porcentaje:.2f}% del balance</div>',
-                    unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+with col_result3:
+    # Calcular valor potencial por unidad de recompensa usando el valor dinámico
+    reward = riesgo_real * risk_reward_ratio
+    reward_percentage = riesgo_real_porcentaje * risk_reward_ratio
 
-    with col_b:
-        # Calcular valor potencial por unidad de recompensa usando el valor dinámico
-        reward = riesgo_real * risk_reward_ratio
-        reward_percentage = riesgo_real_porcentaje * risk_reward_ratio
+    st.markdown(f'<div class="card-title">Objetivo ({risk_reward_ratio:.1f}:1)</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="result-value profit">${reward:.2f}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="info-text">Equivalente al {reward_percentage:.2f}% del balance</div>',
+                unsafe_allow_html=True)
 
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown(f'<div>Objetivo de ganancia ({risk_reward_ratio:.1f}:1):</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="result-value profit">${reward:.2f}</div>', unsafe_allow_html=True)
-        st.markdown(f'<div class="info-text">Equivalente al {reward_percentage:.2f}% del balance</div>',
-                    unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+# Niveles de Precio (si se especificó un precio actual)
+if use_price:
+    st.markdown("---")
+    entry_price = current_price
+    if par_divisa.startswith('USD/'):
+        # Para pares con USD como divisa base
+        pip_factor = 0.01 if par_divisa == 'USD/JPY' else 0.0001
+        sl_price = entry_price - (stop_loss * pip_factor)
+        tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
+    elif par_divisa == 'XAU/USD':
+        # Para oro (XAU/USD)
+        pip_factor = 0.01  # En oro, 1 pip es 0.01
+        sl_price = entry_price - (stop_loss * pip_factor)
+        tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
+    else:
+        # Para pares con USD como divisa cotizada
+        pip_factor = 0.0001
+        sl_price = entry_price - (stop_loss * pip_factor)
+        tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
 
-    if use_price:
-        entry_price = current_price
-        if par_divisa.startswith('USD/'):
-            # Para pares con USD como divisa base
-            pip_factor = 0.01 if par_divisa == 'USD/JPY' else 0.0001
-            sl_price = entry_price - (stop_loss * pip_factor)
-            tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
-        elif par_divisa == 'XAU/USD':
-            # Para oro (XAU/USD)
-            pip_factor = 0.01  # En oro, 1 pip es 0.01
-            sl_price = entry_price - (stop_loss * pip_factor)
-            tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
-        else:
-            # Para pares con USD como divisa cotizada
-            pip_factor = 0.0001
-            sl_price = entry_price - (stop_loss * pip_factor)
-            tp_price = entry_price + (stop_loss * pip_factor * risk_reward_ratio)
+    col_price1, col_price2, col_price3 = st.columns(3)
 
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown('<div>Niveles de Precio:</div>', unsafe_allow_html=True)
+    with col_price1:
+        st.markdown('<div class="card-title">Nivel de Entrada</div>', unsafe_allow_html=True)
         if par_divisa == 'XAU/USD':
-            st.markdown(f'<div>Entrada: <span class="highlight">{entry_price:.2f}</span></div>', unsafe_allow_html=True)
-            st.markdown(f'<div>Stop Loss: <span class="loss">{sl_price:.2f}</span> ({stop_loss} pips)</div>',
-                        unsafe_allow_html=True)
-            st.markdown(
-                f'<div>Take Profit: <span class="profit">{tp_price:.2f}</span> ({stop_loss * risk_reward_ratio} pips)</div>',
-                unsafe_allow_html=True)
+            st.markdown(f'<div class="result-value highlight">{entry_price:.2f}</div>', unsafe_allow_html=True)
         else:
-            st.markdown(f'<div>Entrada: <span class="highlight">{entry_price:.5f}</span></div>', unsafe_allow_html=True)
-            st.markdown(f'<div>Stop Loss: <span class="loss">{sl_price:.5f}</span> ({stop_loss} pips)</div>',
-                        unsafe_allow_html=True)
-            st.markdown(
-                f'<div>Take Profit: <span class="profit">{tp_price:.5f}</span> ({stop_loss * risk_reward_ratio} pips)</div>',
-                unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="result-value highlight">{entry_price:.5f}</div>', unsafe_allow_html=True)
 
-# Visualización gráfica
+    with col_price2:
+        st.markdown('<div class="card-title">Nivel de Stop Loss</div>', unsafe_allow_html=True)
+        if par_divisa == 'XAU/USD':
+            st.markdown(f'<div class="result-value loss">{sl_price:.2f}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="result-value loss">{sl_price:.5f}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="info-text">({stop_loss} pips de distancia)</div>', unsafe_allow_html=True)
+
+    with col_price3:
+        st.markdown('<div class="card-title">Nivel de Take Profit</div>', unsafe_allow_html=True)
+        if par_divisa == 'XAU/USD':
+            st.markdown(f'<div class="result-value profit">{tp_price:.2f}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="result-value profit">{tp_price:.5f}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="info-text">({stop_loss * risk_reward_ratio} pips de distancia)</div>',
+                    unsafe_allow_html=True)
+
+# ======= SECCIÓN DE VISUALIZACIÓN =======
 st.markdown('<div class="sub-header">📊 Visualización de Riesgo y Recompensa</div>', unsafe_allow_html=True)
 
-# Crear un gráfico de comparación de riesgo y recompensa
-col_chart1, col_chart2 = st.columns([2, 1])
+col_viz1, col_viz2 = st.columns([2, 1])
 
-with col_chart1:
+with col_viz1:
     # Crear datos para el gráfico de barras
     labels = ['Balance', 'Monto en Riesgo', 'Objetivo de Ganancia']
     values = [balance, riesgo_real, reward]
@@ -289,12 +292,13 @@ with col_chart1:
         xaxis_title='',
         yaxis_title='Monto ($)',
         height=400,
-        template='plotly_white'
+        template='plotly_white',
+        margin=dict(l=10, r=10, t=40, b=20)
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-with col_chart2:
+with col_viz2:
     # Gráfico de pastel para visualizar el porcentaje de riesgo
     labels = ['Riesgo', 'Balance Restante']
     values = [riesgo_real, balance - riesgo_real]
@@ -324,14 +328,14 @@ with col_chart2:
 
     st.plotly_chart(fig, use_container_width=True)
 
-# Simulador de escenarios
+# ======= SECCIÓN DE SIMULADOR =======
 st.markdown('<div class="sub-header">🎮 Simulador de Escenarios</div>', unsafe_allow_html=True)
 
-col_sim1, col_sim2 = st.columns([1, 1])
+# Configuración del simulador
+col_sim1, col_sim2 = st.columns([1, 2])
 
 with col_sim1:
-    st.markdown('<div style="padding: 15px; background-color: #f8f9fa; border-radius: 10px;">', unsafe_allow_html=True)
-    st.write("Simule diferentes escenarios de trading:")
+    st.markdown('<div class="card-title">Configure su simulación</div>', unsafe_allow_html=True)
 
     num_trades = st.slider('Número de operaciones', min_value=1, max_value=50, value=10)
     win_rate = st.slider('Tasa de éxito (%)', min_value=10, max_value=90, value=50)
@@ -344,79 +348,78 @@ with col_sim1:
     if st.button('Generar Nueva Simulación', key='new_sim'):
         st.session_state.sim_counter = st.session_state.get('sim_counter', 0) + 1
 
-    # Calcular resultados de simulación completamente aleatorios
-    # Generar una nueva semilla cada vez para garantizar que los resultados sean diferentes
-    np.random.seed(int(datetime.now().timestamp()) + st.session_state.sim_counter)
+# Calcular resultados de simulación completamente aleatorios
+# Generar una nueva semilla cada vez para garantizar que los resultados sean diferentes
+np.random.seed(int(datetime.now().timestamp()) + st.session_state.sim_counter)
 
-    results = []
-    balance_acum = balance
+results = []
+balance_acum = balance
 
-    # Generar un arreglo de resultados basado exactamente en la tasa de éxito
-    # Esto garantiza que el porcentaje de operaciones ganadoras sea exactamente el especificado
-    result_array = ['Ganancia'] * int(num_trades * win_rate / 100) + ['Pérdida'] * (
-                num_trades - int(num_trades * win_rate / 100))
-    # Mezclar el arreglo para obtener una secuencia aleatoria
-    np.random.shuffle(result_array)
+# Generar un arreglo de resultados basado exactamente en la tasa de éxito
+# Esto garantiza que el porcentaje de operaciones ganadoras sea exactamente el especificado
+result_array = ['Ganancia'] * int(num_trades * win_rate / 100) + ['Pérdida'] * (
+            num_trades - int(num_trades * win_rate / 100))
+# Mezclar el arreglo para obtener una secuencia aleatoria
+np.random.shuffle(result_array)
 
-    for i in range(num_trades):
-        result = result_array[i]
+for i in range(num_trades):
+    result = result_array[i]
 
-        if result == 'Ganancia':
-            # Para las ganancias, añadimos algo de variabilidad al profit
-            # entre 0.8 y 1.2 veces el objetivo de R:R
-            profit_multiplier = 0.8 + np.random.random() * 0.4  # entre 0.8 y 1.2
-            profit = reward * profit_multiplier
-        else:
-            # Para las pérdidas, también añadimos variabilidad
-            # entre 0.9 y 1.1 veces el riesgo (las pérdidas tienden a ser más precisas)
-            loss_multiplier = 0.9 + np.random.random() * 0.2  # entre 0.9 y 1.1
-            profit = -riesgo_real * loss_multiplier
+    if result == 'Ganancia':
+        # Para las ganancias, añadimos algo de variabilidad al profit
+        # entre 0.8 y 1.2 veces el objetivo de R:R
+        profit_multiplier = 0.8 + np.random.random() * 0.4  # entre 0.8 y 1.2
+        profit = reward * profit_multiplier
+    else:
+        # Para las pérdidas, también añadimos variabilidad
+        # entre 0.9 y 1.1 veces el riesgo (las pérdidas tienden a ser más precisas)
+        loss_multiplier = 0.9 + np.random.random() * 0.2  # entre 0.9 y 1.1
+        profit = -riesgo_real * loss_multiplier
 
-        balance_acum += profit
+    balance_acum += profit
 
-        results.append({
-            'Operación': i + 1,
-            'Resultado': result,
-            'P&L': profit,
-            'Balance': balance_acum
-        })
+    results.append({
+        'Operación': i + 1,
+        'Resultado': result,
+        'P&L': profit,
+        'Balance': balance_acum
+    })
 
-    # El balance ya se calculó correctamente en el bucle anterior
-    # No es necesario recalcularlo ya que ahora no hacemos shuffle
+# Calcular estadísticas finales
+final_balance = results[-1]['Balance'] if results else balance
+profit_loss = final_balance - balance
+percent_change = (profit_loss / balance) * 100
 
-    # Calcular estadísticas finales
-    final_balance = results[-1]['Balance'] if results else balance
-    profit_loss = final_balance - balance
-    percent_change = (profit_loss / balance) * 100
+# Calcular métricas adicionales
+total_wins = sum(1 for r in results if r['Resultado'] == 'Ganancia')
+total_losses = num_trades - total_wins
+avg_win = sum(r['P&L'] for r in results if r['Resultado'] == 'Ganancia') / total_wins if total_wins > 0 else 0
+avg_loss = sum(abs(r['P&L']) for r in results if r['Resultado'] == 'Pérdida') / total_losses if total_losses > 0 else 0
 
-    # Calcular métricas adicionales
-    total_wins = sum(1 for r in results if r['Resultado'] == 'Ganancia')
-    total_losses = num_trades - total_wins
-    avg_win = sum(r['P&L'] for r in results if r['Resultado'] == 'Ganancia') / total_wins if total_wins > 0 else 0
-    avg_loss = sum(
-        abs(r['P&L']) for r in results if r['Resultado'] == 'Pérdida') / total_losses if total_losses > 0 else 0
+# Drawdown máximo
+peak_balance = balance
+max_drawdown = 0
+max_drawdown_pct = 0
+current_drawdown = 0
 
-    # Drawdown máximo
-    peak_balance = balance
-    max_drawdown = 0
-    max_drawdown_pct = 0
-    current_drawdown = 0
+for r in results:
+    if r['Balance'] > peak_balance:
+        peak_balance = r['Balance']
+        current_drawdown = 0
+    else:
+        current_drawdown = peak_balance - r['Balance']
+        current_drawdown_pct = (current_drawdown / peak_balance) * 100
 
-    for r in results:
-        if r['Balance'] > peak_balance:
-            peak_balance = r['Balance']
-            current_drawdown = 0
-        else:
-            current_drawdown = peak_balance - r['Balance']
-            current_drawdown_pct = (current_drawdown / peak_balance) * 100
+        if current_drawdown > max_drawdown:
+            max_drawdown = current_drawdown
+            max_drawdown_pct = current_drawdown_pct
 
-            if current_drawdown > max_drawdown:
-                max_drawdown = current_drawdown
-                max_drawdown_pct = current_drawdown_pct
+# Tabla y Gráfico de resultados
+col_sim_result1, col_sim_result2 = st.columns([1, 1])
 
-    st.markdown('</div>', unsafe_allow_html=True)
+with col_sim_result1:
+    st.markdown('<div class="card-title">Detalle de operaciones</div>', unsafe_allow_html=True)
 
-    # Mostrar tabla de operaciones
     df_results = pd.DataFrame(results)
 
 
@@ -439,13 +442,17 @@ with col_sim1:
             return ''
 
 
-    styled_df = df_results.style.applymap(highlight_result, subset=['Resultado']) \
-        .applymap(highlight_pnl, subset=['P&L']) \
+    # Aplicar estilos y formateos
+    styled_df = df_results.style.map(highlight_result, subset=['Resultado']) \
+        .map(highlight_pnl, subset=['P&L']) \
         .format({'P&L': '${:.2f}', 'Balance': '${:.2f}'})
 
-    st.dataframe(styled_df, height=400)
+    # Mostrar dataframe ajustado a la columna
+    st.dataframe(styled_df, height=300, use_container_width=True)
 
-with col_sim2:
+with col_sim_result2:
+    st.markdown('<div class="card-title">Evolución del Balance</div>', unsafe_allow_html=True)
+
     # Gráfico de línea para mostrar la evolución del balance
     balances = [balance] + [r['Balance'] for r in results]
     trades = list(range(len(balances)))
@@ -479,83 +486,77 @@ with col_sim2:
     )
 
     fig.update_layout(
-        title='Evolución del Balance',
         xaxis_title='Número de Operaciones',
         yaxis_title='Balance ($)',
-        height=400,
-        template='plotly_white'
+        height=300,
+        template='plotly_white',
+        margin=dict(l=10, r=10, t=10, b=20)
     )
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # Mostrar resultados finales
-    col_end1, col_end2 = st.columns(2)
+# Mostrar resultados de la simulación
+col_sim_stats1, col_sim_stats2 = st.columns(2)
 
-    with col_end1:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown('<div>Resultado Final:</div>', unsafe_allow_html=True)
-        profit_loss_color = "profit" if profit_loss >= 0 else "loss"
-        profit_loss_sign = "+" if profit_loss >= 0 else ""
-        st.markdown(f'<div class="result-value {profit_loss_color}">{profit_loss_sign}${profit_loss:.2f}</div>',
+with col_sim_stats1:
+    st.markdown('<div class="card-title">Resultado Final</div>', unsafe_allow_html=True)
+    profit_loss_color = "profit" if profit_loss >= 0 else "loss"
+    profit_loss_sign = "+" if profit_loss >= 0 else ""
+    st.markdown(f'<div class="result-value {profit_loss_color}">{profit_loss_sign}${profit_loss:.2f}</div>',
+                unsafe_allow_html=True)
+    st.markdown(f'<div class="info-text">{profit_loss_sign}{percent_change:.2f}% del balance inicial</div>',
+                unsafe_allow_html=True)
+
+    # Mostrar drawdown máximo
+    st.markdown(
+        f'<div class="info-text">Drawdown máximo: <span class="loss">${max_drawdown:.2f}</span> ({max_drawdown_pct:.2f}%)</div>',
+        unsafe_allow_html=True)
+
+    # Mostrar promedio de ganancias/pérdidas
+    if total_wins > 0:
+        st.markdown(f'<div class="info-text">Ganancia promedio: <span class="profit">${avg_win:.2f}</span></div>',
                     unsafe_allow_html=True)
-        st.markdown(f'<div class="info-text">{profit_loss_sign}{percent_change:.2f}% del balance inicial</div>',
+    if total_losses > 0:
+        st.markdown(f'<div class="info-text">Pérdida promedio: <span class="loss">${avg_loss:.2f}</span></div>',
                     unsafe_allow_html=True)
 
-        # Mostrar drawdown máximo
-        st.markdown(
-            f'<div class="info-text">Drawdown máximo: <span class="loss">${max_drawdown:.2f}</span> ({max_drawdown_pct:.2f}%)</div>',
-            unsafe_allow_html=True)
+with col_sim_stats2:
+    st.markdown('<div class="card-title">Operaciones</div>', unsafe_allow_html=True)
+    actual_wins = sum(1 for r in results if r['Resultado'] == 'Ganancia')
+    actual_win_rate = (actual_wins / num_trades) * 100
+    st.markdown(f'<div class="result-value">{actual_wins}/{num_trades} exitosas</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="info-text">Tasa de éxito real: {actual_win_rate:.1f}% (objetivo: {win_rate:.1f}%)</div>',
+                unsafe_allow_html=True)
 
-        # Mostrar promedio de ganancias/pérdidas
-        if total_wins > 0:
-            st.markdown(f'<div class="info-text">Ganancia promedio: <span class="profit">${avg_win:.2f}</span></div>',
-                        unsafe_allow_html=True)
-        if total_losses > 0:
-            st.markdown(f'<div class="info-text">Pérdida promedio: <span class="loss">${avg_loss:.2f}</span></div>',
-                        unsafe_allow_html=True)
+    # Calcular racha más larga de operaciones ganadoras y perdedoras
+    current_streak = 1
+    max_win_streak = 0
+    max_loss_streak = 0
+    current_type = results[0]['Resultado'] if results else None
 
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col_end2:
-        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-        st.markdown('<div>Operaciones:</div>', unsafe_allow_html=True)
-        actual_wins = sum(1 for r in results if r['Resultado'] == 'Ganancia')
-        actual_win_rate = (actual_wins / num_trades) * 100
-        st.markdown(f'<div class="result-value">{actual_wins}/{num_trades} exitosas</div>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="info-text">Tasa de éxito real: {actual_win_rate:.1f}% (objetivo: {win_rate:.1f}%)</div>',
-            unsafe_allow_html=True)
-
-        # Calcular racha más larga de operaciones ganadoras y perdedoras
-        current_streak = 1
-        max_win_streak = 0
-        max_loss_streak = 0
-        current_type = results[0]['Resultado'] if results else None
-
-        for i in range(1, len(results)):
-            if results[i]['Resultado'] == current_type:
-                current_streak += 1
-            else:
-                if current_type == 'Ganancia':
-                    max_win_streak = max(max_win_streak, current_streak)
-                else:
-                    max_loss_streak = max(max_loss_streak, current_streak)
-                current_streak = 1
-                current_type = results[i]['Resultado']
-
-        # No olvidar la última racha
-        if current_type == 'Ganancia':
-            max_win_streak = max(max_win_streak, current_streak)
+    for i in range(1, len(results)):
+        if results[i]['Resultado'] == current_type:
+            current_streak += 1
         else:
-            max_loss_streak = max(max_loss_streak, current_streak)
+            if current_type == 'Ganancia':
+                max_win_streak = max(max_win_streak, current_streak)
+            else:
+                max_loss_streak = max(max_loss_streak, current_streak)
+            current_streak = 1
+            current_type = results[i]['Resultado']
 
-        st.markdown(
-            f'<div class="info-text">Racha más larga de ganancias: <span class="profit">{max_win_streak}</span></div>',
-            unsafe_allow_html=True)
-        st.markdown(
-            f'<div class="info-text">Racha más larga de pérdidas: <span class="loss">{max_loss_streak}</span></div>',
-            unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # No olvidar la última racha
+    if current_type == 'Ganancia':
+        max_win_streak = max(max_win_streak, current_streak)
+    else:
+        max_loss_streak = max(max_loss_streak, current_streak)
+
+    st.markdown(
+        f'<div class="info-text">Racha más larga de ganancias: <span class="profit">{max_win_streak}</span></div>',
+        unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="info-text">Racha más larga de pérdidas: <span class="loss">{max_loss_streak}</span></div>',
+        unsafe_allow_html=True)
 
 # Pie de página
 st.markdown('---')
