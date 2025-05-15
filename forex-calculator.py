@@ -79,10 +79,10 @@ col_param1, col_param2 = st.columns(2)
 
 with col_param1:
     # Parámetros básicos
-    balance = st.number_input('Balance de la cuenta ($)', min_value=10.0, max_value=1000000.0, value=10000.0,
+    balance = st.number_input('Balance de la cuenta ($)', min_value=10.0, max_value=1000000.0, value=200000.0,
                               step=100.0)
     riesgo = st.slider('Riesgo (%)', min_value=0.1, max_value=10.0, value=1.0, step=0.1)
-    comision = st.number_input('Comisión por lote ($)', min_value=0.0, max_value=100.0, value=7.0, step=1.0)
+    comision = st.number_input('Comisión por lote ($)', min_value=0.0, max_value=100.0, value=4.0, step=1.0)
     stop_loss = st.number_input('Stop Loss (pips)', min_value=0.1, max_value=1000.0, value=50.0, step=0.1,
                                 format="%.1f")
 
@@ -90,7 +90,7 @@ with col_param2:
     # Selector de par de divisas
     par_divisa = st.selectbox(
         'Par de divisas',
-        ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CAD', 'USD/CHF', 'NZD/USD', 'XAU/USD'],
+        ['EUR/USD', 'GBP/USD', 'XAU/USD'],
         index=0
     )
 
@@ -98,11 +98,6 @@ with col_param2:
     pip_values = {
         'EUR/USD': 10.0,
         'GBP/USD': 10.0,
-        'USD/JPY': 9.43,
-        'AUD/USD': 10.0,
-        'USD/CAD': 7.61,
-        'USD/CHF': 10.64,
-        'NZD/USD': 10.0,
         'XAU/USD': 100.0  # Oro tiene un valor de pip diferente (10 USD para movimiento de 0.01)
     }
 
@@ -112,10 +107,6 @@ with col_param2:
     if par_divisa == 'XAU/USD':
         st.markdown(
             f'<div class="info-text">Para {par_divisa}, 1 pip = 0.01 (10 centavos). Valor por lote estándar: ${pip_values[par_divisa]:.2f}</div>',
-            unsafe_allow_html=True)
-    elif par_divisa == 'USD/JPY':
-        st.markdown(
-            f'<div class="info-text">Para {par_divisa}, 1 pip = 0.01 (1 céntimo). Valor por lote estándar: ${pip_values[par_divisa]:.2f}</div>',
             unsafe_allow_html=True)
     else:
         st.markdown(
@@ -142,7 +133,7 @@ with col_param2:
         pip_value *= 0.01
 
     # Relación riesgo:recompensa personalizable
-    risk_reward_ratio = st.slider('Relación Riesgo:Recompensa', min_value=0.5, max_value=5.0, value=2.0, step=0.1)
+    risk_reward_ratio = st.slider('Relación Riesgo:Recompensa', min_value=0.5, max_value=10.0, value=10.0, step=0.1)
 
     # Precio actual (opcional)
     use_price = st.checkbox('Especificar precio actual', value=False)
