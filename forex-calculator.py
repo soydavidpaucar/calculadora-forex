@@ -272,7 +272,7 @@ with col_param1:
         min_value=0.1, 
         max_value=5.0, 
         value=1.0, 
-        step=0.1,
+        step=0.01,
         help="Porcentaje del balance que estás dispuesto a arriesgar"
     )
     
@@ -298,7 +298,7 @@ with col_param1:
 with col_param2:
     par_divisa = st.selectbox(
         'Par de divisas',
-        ['EUR/USD', 'GBP/USD', 'XAU/USD'],
+        ['XAU/USD', 'EUR/USD', 'GBP/USD'],
         index=0,
         help="Selecciona el par de divisas a operar"
     )
